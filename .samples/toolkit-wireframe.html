@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>RS3 Wiki Toolkit</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    :root {
+      --stone-deep:   #0a0907;
+      --stone-dark:   #131109;
+      --stone-mid:    #1c1810;
+      --stone-panel:  #1e1a11;
+      --gold:         #c8a444;
+      --gold-bright:  #e8c060;
+      --gold-dim:     #7a6020;
+      --gold-muted:   #3d3010;
+      --gold-border:  #5a4418;
+      --parchment:    #c8b888;
+      --parchment-dim:#7a6a4a;
+      --parchment-mut:#3a3020;
+      --red:          #c84040;
+      --red-dim:      #4a1010;
+      --red-bright:   #e06060;
+      --green:        #5a9a3a;
+      --green-dim:    #1a3a0a;
+      --green-bright: #80c050;
+      --amber:        #c87820;
+      --amber-dim:    #3a2008;
+      --amber-bright: #e09840;
+      --rune-blue:    #4488cc;
+      --rune-blue-dim:#0a2040;
+      --text:         #c8b888;
+      --text-dim:     #6a5a38;
+      --text-muted:   #3a3020;
+      --font-title:   'Cinzel Decorative','Cinzel',serif;
+      --font-heading: 'Cinzel',serif;
+      --font-body:    'IM Fell English','Palatino Linotype',serif;
+      --font-mono:    'Courier Prime','Courier New',monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body,#root{height:100%;}
+    body{
+      background-color:var(--stone-deep);
+      background-image:
+        repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px),
+        repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(0,0,0,0.04) 2px,rgba(0,0,0,0.04) 4px);
+      color:var(--text);font-family:var(--font-body);font-size:13px;overflow:hidden;
+    }
+    ::-webkit-scrollbar{width:6px;height:6px;}
+    ::-webkit-scrollbar-track{background:var(--stone-dark);}
+    ::-webkit-scrollbar-thumb{background:var(--gold-border);}
+    ::-webkit-scrollbar-thumb:hover{background:var(--gold-dim);}
+    input,textarea,select{
+      background:var(--stone-deep);border:1px solid var(--gold-border);border-radius:0;
+      color:var(--parchment);font-family:var(--font-body);font-size:12.5px;
+      padding:7px 10px;outline:none;width:100%;transition:border-color 0.15s,box-shadow 0.15s;
+    }
+    input:focus,textarea:focus,select:focus{border-color:var(--gold-dim);box-shadow:0 0 0 1px var(--gold-muted),inset 0 1px 4px rgba(0,0,0,0.5);}
+    input[type=checkbox]{width:14px;height:14px;accent-color:var(--gold);cursor:pointer;}
+    textarea{resize:vertical;font-family:var(--font-mono);font-size:11.5px;line-height:1.7;}
+    select{cursor:pointer;}
+    select option{background:var(--stone-panel);color:var(--parchment);}
+    input.rune-text{font-family:var(--font-mono);color:var(--gold-bright);}
+    button{
+      cursor:pointer;font-family:var(--font-heading);font-size:11px;font-weight:600;
+      letter-spacing:0.08em;border-radius:0;transition:all 0.12s;text-transform:uppercase;
+    }
+    button:active{transform:scale(0.97);}
+    button:disabled{opacity:0.38;cursor:not-allowed;}
+    .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 18px;border:1px solid;position:relative;}
+    .btn::before,.btn::after{content:'';position:absolute;width:5px;height:5px;border-color:inherit;}
+    .btn::before{top:-1px;left:-1px;border-top:1px solid;border-left:1px solid;}
+    .btn::after{bottom:-1px;right:-1px;border-bottom:1px solid;border-right:1px solid;}
+    .btn-gold{background:linear-gradient(180deg,#2a2010 0%,#1a1408 100%);color:var(--gold-bright);border-color:var(--gold-dim);}
+    .btn-gold:hover:not(:disabled){background:linear-gradient(180deg,#382c14 0%,#241a0c 100%);border-color:var(--gold);}
+    .btn-danger{background:linear-gradient(180deg,#2a1010 0%,#1a0808 100%);color:var(--red-bright);border-color:var(--red-dim);}
+    .btn-danger:hover:not(:disabled){border-color:var(--red);}
+    .btn-success{background:linear-gradient(180deg,#101a08 0%,#0a1204 100%);color:var(--green-bright);border-color:var(--green-dim);}
+    .btn-success:hover:not(:disabled){border-color:var(--green);}
+    .btn-ghost{background:linear-gradient(180deg,#1c1810 0%,#131009 100%);color:var(--parchment-dim);border-color:var(--gold-border);}
+    .btn-ghost:hover:not(:disabled){color:var(--parchment);border-color:var(--gold-dim);}
+    .app{display:flex;height:100vh;overflow:hidden;}
+    .sidebar{
+      width:230px;min-width:230px;background:var(--stone-dark);
+      border-right:1px solid var(--gold-border);display:flex;flex-direction:column;
+      overflow:hidden;position:relative;z-index:100;transition:transform 0.3s;
+    }
+    .sidebar::after{
+      content:'';position:absolute;top:0;right:0;bottom:0;width:1px;
+      background:linear-gradient(180deg,transparent 0%,var(--gold-dim) 20%,var(--gold-dim) 80%,transparent 100%);
+      pointer-events:none;
+    }
+    .sidebar-header{
+      padding:16px 14px 14px;border-bottom:1px solid var(--gold-border);
+      background:linear-gradient(180deg,#1a1508 0%,#0f0d06 100%);
+      text-align:center;position:relative;
+    }
+    .sidebar-header::before,.sidebar-header::after{
+      content:'◆';position:absolute;bottom:-7px;color:var(--gold-dim);
+      font-size:12px;background:var(--stone-dark);padding:0 3px;
+    }
+    .sidebar-header::before{left:12px;}
+    .sidebar-header::after{right:12px;}
+    .logo-title{
+      font-family:var(--font-title);font-size:13px;font-weight:700;
+      color:var(--gold-bright);letter-spacing:0.06em;line-height:1.4;
+      text-shadow:0 0 12px rgba(200,164,68,0.4),0 1px 3px rgba(0,0,0,0.8);
+    }
+    .logo-sub{font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:var(--parchment-dim);margin-top:4px;font-family:var(--font-heading);}
+    .nav-section{padding:10px 6px;flex:1;overflow-y:auto;}
+    .nav-group-label{
+      font-family:var(--font-heading);font-size:8px;letter-spacing:0.25em;text-transform:uppercase;
+      color:var(--text-muted);padding:6px 10px 4px;display:flex;align-items:center;gap:6px;
+    }
+    .nav-group-label::before,.nav-group-label::after{content:'';flex:1;height:1px;background:var(--gold-border);opacity:0.5;}
+    .nav-item{
+      display:flex;align-items:center;gap:9px;padding:8px 10px;cursor:pointer;
+      border:1px solid transparent;color:var(--parchment-dim);margin-bottom:1px;
+      transition:all 0.12s;user-select:none;font-family:var(--font-heading);font-size:11.5px;letter-spacing:0.04em;
+    }
+    .nav-item:hover{color:var(--parchment);background:rgba(200,164,68,0.05);border-color:var(--gold-border);}
+    .nav-item.active{
+      background:linear-gradient(90deg,rgba(200,164,68,0.12) 0%,rgba(200,164,68,0.05) 100%);
+      border-color:var(--gold-border);color:var(--gold-bright);
+      border-left-color:var(--gold);border-left-width:2px;
+    }
+    .nav-icon{font-size:13px;width:18px;text-align:center;flex-shrink:0;}
+    .nav-name{flex:1;}
+    .nav-tag{font-size:7.5px;font-weight:700;letter-spacing:0.1em;padding:1px 5px;font-family:var(--font-heading);}
+    .log-count{background:var(--red);color:#f8e8c0;font-size:9px;font-weight:700;font-family:var(--font-heading);padding:1px 6px;min-width:18px;text-align:center;}
+    .dry-toggle{
+      margin:8px 6px;padding:10px 12px;border:1px solid var(--gold-border);
+      background:linear-gradient(180deg,#171208 0%,#0f0d06 100%);
+      display:flex;align-items:center;justify-content:space-between;
+      cursor:pointer;user-select:none;transition:all 0.15s;
+    }
+    .dry-toggle.active{border-color:var(--amber);background:linear-gradient(180deg,#1e1206 0%,#130d04 100%);}
+    .dry-label{font-family:var(--font-heading);font-size:10.5px;font-weight:600;color:var(--text-dim);letter-spacing:0.06em;}
+    .dry-toggle.active .dry-label{color:var(--amber-bright);}
+    .dry-hint{font-size:9px;color:var(--text-muted);margin-top:2px;font-family:var(--font-body);font-style:italic;}
+    .toggle-track{width:30px;height:16px;border:1px solid var(--gold-border);background:var(--stone-deep);position:relative;flex-shrink:0;transition:all 0.2s;}
+    .toggle-track.on{background:var(--amber-dim);border-color:var(--amber);}
+    .toggle-knob{position:absolute;top:2px;left:2px;width:10px;height:10px;background:var(--text-muted);transition:left 0.15s,background 0.15s;}
+    .toggle-track.on .toggle-knob{left:16px;background:var(--amber-bright);}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+    .topbar{
+      height:50px;flex-shrink:0;
+      background:linear-gradient(180deg,#181408 0%,#0f0d06 100%);
+      border-bottom:1px solid var(--gold-border);
+      display:flex;align-items:center;padding:0 18px;gap:12px;
+    }
+    .hamburger{display:none;flex-direction:column;gap:4px;cursor:pointer;padding:4px;flex-shrink:0;}
+    .hamburger span{width:20px;height:2px;background:var(--gold-dim);}
+    .topbar-title{
+      font-family:var(--font-heading);font-size:15px;font-weight:600;color:var(--gold-bright);
+      letter-spacing:0.08em;flex:1;text-shadow:0 0 10px rgba(200,164,68,0.3);
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .topbar-pill{font-family:var(--font-heading);font-size:8.5px;font-weight:700;letter-spacing:0.14em;padding:3px 9px;border:1px solid;flex-shrink:0;text-transform:uppercase;}
+    .wiki-conn{display:flex;align-items:center;gap:5px;font-family:var(--font-heading);font-size:9.5px;color:var(--text-dim);flex-shrink:0;}
+    .conn-dot{width:5px;height:5px;flex-shrink:0;}
+    .content{flex:1;overflow-y:auto;padding:18px;}
+    .statusbar{height:26px;flex-shrink:0;background:var(--stone-dark);border-top:1px solid var(--gold-border);display:flex;align-items:center;padding:0 14px;gap:18px;}
+    .status-item{font-family:var(--font-heading);font-size:9px;color:var(--text-dim);display:flex;align-items:center;gap:5px;letter-spacing:0.08em;text-transform:uppercase;}
+    .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99;}
+    .rs-panel{background:linear-gradient(180deg,var(--stone-panel) 0%,#161208 100%);border:1px solid var(--gold-border);margin-bottom:14px;position:relative;}
+    .rs-panel::before{content:'';position:absolute;inset:3px;border:1px solid rgba(200,164,68,0.08);pointer-events:none;}
+    .panel-head{background:linear-gradient(180deg,#241e0e 0%,#1a1608 100%);border-bottom:1px solid var(--gold-border);padding:8px 14px;display:flex;align-items:center;gap:8px;position:relative;}
+    .panel-head-title{font-family:var(--font-heading);font-size:10px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);flex:1;}
+    .panel-head::before,.panel-head::after{content:'◆';font-size:8px;color:var(--gold-dim);}
+    .panel-body{padding:14px;}
+    .row{display:flex;gap:10px;align-items:flex-end;margin-bottom:12px;flex-wrap:wrap;}
+    .row:last-child{margin-bottom:0;}
+    .field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:110px;}
+    .field-label{font-family:var(--font-heading);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold-dim);}
+    .check-row{display:flex;align-items:center;gap:8px;font-family:var(--font-heading);font-size:11px;color:var(--parchment-dim);cursor:pointer;user-select:none;letter-spacing:0.03em;}
+    .result-item{display:flex;align-items:flex-start;gap:9px;padding:7px 10px;margin-bottom:3px;background:var(--stone-deep);border-left:2px solid transparent;}
+    .r-edit{border-color:var(--gold);}
+    .r-match{border-color:var(--green);}
+    .r-error{border-color:var(--red);}
+    .r-skip{border-color:var(--text-muted);}
+    .r-warn{border-color:var(--amber);}
+    .r-icon{font-family:var(--font-mono);font-size:11px;flex-shrink:0;margin-top:1px;min-width:12px;}
+    .r-edit .r-icon{color:var(--gold);}
+    .r-match .r-icon{color:var(--green-bright);}
+    .r-error .r-icon{color:var(--red-bright);}
+    .r-skip .r-icon{color:var(--text-muted);}
+    .r-warn .r-icon{color:var(--amber-bright);}
+    .r-page{color:var(--parchment);font-size:12px;font-family:var(--font-heading);}
+    .r-detail{font-size:10.5px;color:var(--parchment-dim);margin-top:2px;font-family:var(--font-mono);}
+    .progress{height:4px;background:var(--stone-deep);border:1px solid var(--gold-border);margin-top:8px;}
+    .progress-inner{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));transition:width 0.4s;}
+    .diff-ctx{font-family:var(--font-mono);font-size:11px;color:var(--parchment-dim);padding:3px 10px;}
+    .diff-old{font-family:var(--font-mono);font-size:11px;color:#d88080;background:rgba(180,40,40,0.12);border-left:2px solid var(--red);padding:4px 10px;margin:1px 0;}
+    .diff-new{font-family:var(--font-mono);font-size:11px;color:#90c878;background:rgba(60,140,40,0.1);border-left:2px solid var(--green);padding:4px 10px;margin:1px 0;}
+    .log-entry{border-bottom:1px solid var(--gold-border);padding:11px 14px;cursor:pointer;transition:background 0.1s;}
+    .log-entry:hover{background:rgba(200,164,68,0.03);}
+    .log-entry:last-child{border-bottom:none;}
+    .log-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .log-ts{font-family:var(--font-mono);font-size:9.5px;color:var(--text-dim);flex-shrink:0;}
+    .log-tool{font-family:var(--font-heading);font-size:11px;color:var(--parchment);font-weight:600;letter-spacing:0.04em;}
+    .log-act{font-size:10.5px;color:var(--parchment-dim);font-style:italic;font-family:var(--font-body);}
+    .log-sum{font-size:10.5px;color:var(--parchment-dim);margin-top:3px;font-family:var(--font-mono);}
+    .log-expand{margin-left:auto;color:var(--gold-dim);font-family:var(--font-heading);font-size:11px;}
+    .log-detail-area{border-top:1px solid var(--gold-border);background:var(--stone-deep);}
+    .log-params{padding:10px 14px;}
+    .log-sect{font-family:var(--font-heading);font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:5px;}
+    .log-param{display:flex;gap:10px;padding:2px 0;}
+    .log-pk{font-family:var(--font-mono);font-size:10px;color:var(--text-dim);min-width:110px;}
+    .log-pv{font-family:var(--font-mono);font-size:10px;color:var(--gold-bright);}
+    .s-pill{font-family:var(--font-heading);font-size:8px;font-weight:700;letter-spacing:0.12em;padding:2px 7px;text-transform:uppercase;}
+    .s-done{background:var(--green-dim);color:var(--green-bright);border:1px solid rgba(90,154,58,0.3);}
+    .s-dry{background:var(--amber-dim);color:var(--amber-bright);border:1px solid rgba(200,120,32,0.3);}
+    .s-run{background:var(--rune-blue-dim);color:#88b8e8;border:1px solid rgba(68,136,204,0.3);}
+    .s-err{background:var(--red-dim);color:var(--red-bright);border:1px solid rgba(200,64,64,0.3);}
+    .setting-row{padding-bottom:14px;margin-bottom:14px;border-bottom:1px solid var(--gold-border);}
+    .setting-row:last-child{border-bottom:none;padding-bottom:0;margin-bottom:0;}
+    .setting-hint{font-size:10.5px;color:var(--text-muted);line-height:1.6;margin-top:4px;font-family:var(--font-body);font-style:italic;}
+    .count-row{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--font-heading);font-size:10.5px;letter-spacing:0.05em;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--gold-border);}
+    .count-item{display:flex;align-items:center;gap:5px;}
+    .rs-divider{display:flex;align-items:center;gap:8px;margin:14px 0;color:var(--gold-border);font-size:11px;}
+    .rs-divider::before,.rs-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-border),transparent);}
+    @media(max-width:680px){
+      .sidebar{position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%);}
+      .sidebar.open{transform:translateX(0);}
+      .hamburger{display:flex;}
+      .overlay.show{display:block;}
+      .content{padding:12px;}
+    }
+    @media(max-width:400px){.panel-body{padding:10px;}.btn{padding:7px 12px;}}
+    @keyframes gold-pulse{0%,100%{text-shadow:0 0 10px rgba(200,164,68,0.3);}50%{text-shadow:0 0 22px rgba(200,164,68,0.6),0 0 40px rgba(200,164,68,0.15);}}
+    .logo-title{animation:gold-pulse 5s ease-in-out infinite;}
+    @keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+    .dot-live{animation:blink 2s infinite;}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const{useState,useContext,createContext,useCallback}=React;
+const AppCtx=createContext(null);
+const useApp=()=>useContext(AppCtx);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const stamp=()=>new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+const dated=()=>new Date().toLocaleDateString('en-GB');
+const NAMES={'find-replace':'Find & Replace','mass-edit':'Mass Edit','template-check':'Template Inspector','category-mgr':'Category Manager','dead-links':'Dead Link Scanner','page-diff':'Page Diff','log':'Action Log','settings':'Settings'};
+const ICONS={'find-replace':'⌕','mass-edit':'⊞','template-check':'⊛','category-mgr':'⊟','dead-links':'⊘','page-diff':'⊕','log':'☰','settings':'⚙'};
+
+function Panel({title,icon,children}){return(<div className="rs-panel"><div className="panel-head">{icon&&<span style={{color:'var(--gold-dim)',fontSize:'12px'}}>{icon}</span>}<span className="panel-head-title">{title}</span></div><div className="panel-body">{children}</div></div>);}
+function Field({label,children,grow,minW}){return(<div className="field" style={{flex:grow||1,minWidth:minW||'110px'}}>{label&&<label className="field-label">{label}</label>}{children}</div>);}
+function Btn({variant='ghost',onClick,children,disabled}){return(<button className={`btn btn-${variant}`} onClick={disabled?undefined:onClick} disabled={disabled}>{children}</button>);}
+function ResultItem({type,page,detail}){const icons={edit:'◆',match:'✦',error:'✕',skip:'–',warn:'▲'};return(<div className={`result-item r-${type}`}><span className="r-icon">{icons[type]||'·'}</span><div><div className="r-page">{page}</div>{detail&&<div className="r-detail">{detail}</div>}</div></div>);}
+function ProgressBar({pct}){return(<div className="progress"><div className="progress-inner" style={{width:`${pct}%`}}/></div>);}
+function DryBadge(){const{dryRun}=useApp();if(!dryRun)return null;return<span className="topbar-pill" style={{color:'var(--amber-bright)',borderColor:'var(--amber)',background:'var(--amber-dim)'}}>Dry Run</span>;}
+function StatusPill({status,dryRun}){if(dryRun)return<span className="s-pill s-dry">Simulated</span>;const m={completed:'s-done',running:'s-run',error:'s-err'};return<span className={`s-pill ${m[status]||'s-run'}`}>{status}</span>;}
+function Divider(){return<div className="rs-divider">◆</div>;}
+
+// ── Find & Replace ───────────────────────────────────────────────────────────
+function FindReplace(){
+  const{dryRun,addLog}=useApp();
+  const[pattern,setPattern]=useState('');
+  const[replace,setReplace]=useState('');
+  const[pages,setPages]=useState('Zamorak\nSaradomin\nGuthix\nArmadyl\nBandos');
+  const[regex,setRegex]=useState(false);
+  const[caseSens,setCaseSens]=useState(false);
+  const[summary,setSummary]=useState('Automated find & replace via RS3 Wiki Toolkit');
+  const[results,setResults]=useState(null);
+  const[running,setRunning]=useState(false);
+  function run(){
+    if(!pattern)return;setRunning(true);
+    const list=pages.split('\n').map(p=>p.trim()).filter(Boolean);
+    const types=['edit','match','skip','edit','match'];
+    setTimeout(()=>{
+      const res=list.map((page,i)=>{const t=types[i%types.length];return{type:t,page,detail:t==='edit'?`Replaced ${1+i} occurrence(s) of "${pattern}"`:t==='match'?'Match found — content already identical, no change':'Pattern not present on page'};});
+      setResults(res);setRunning(false);
+      addLog({tool:'find-replace',action:dryRun?'Simulate Find & Replace':'Execute Find & Replace',dryRun,params:{pattern,replacement:replace,useRegex:regex,caseSensitive:caseSens,pages:list.length,editSummary:summary},status:'completed',summary:`${list.length} pages processed — ${res.filter(r=>r.type==='edit').length} edited, ${res.filter(r=>r.type==='match').length} matched, ${res.filter(r=>r.type==='skip').length} skipped`,entries:res});
+    },600);
+  }
+  return(<>
+    <Panel title="Search Parameters" icon="⌕">
+      <div className="row">
+        <Field label="Find Pattern" grow={2}><input className="rune-text" value={pattern} onChange={e=>setPattern(e.target.value)} placeholder="\[\[Old link\]\]  or plain text"/></Field>
+        <Field label="Replace With" grow={2}><input className="rune-text" value={replace} onChange={e=>setReplace(e.target.value)} placeholder="[[New link]]  or plain text"/></Field>
+      </div>
+      <div style={{display:'flex',gap:'18px',flexWrap:'wrap'}}>
+        <label className="check-row"><input type="checkbox" checked={regex} onChange={e=>setRegex(e.target.checked)}/> Use Regular Expressions</label>
+        <label className="check-row"><input type="checkbox" checked={caseSens} onChange={e=>setCaseSens(e.target.checked)}/> Case Sensitive</label>
+      </div>
+    </Panel>
+    <Panel title="Target Pages" icon="☰">
+      <Field label="Page List — one entry per line"><textarea value={pages} onChange={e=>setPages(e.target.value)} rows={5}/></Field>
+      <div className="row" style={{marginTop:'10px'}}><Field label="Edit Summary"><input value={summary} onChange={e=>setSummary(e.target.value)}/></Field></div>
+    </Panel>
+    <div className="row" style={{marginBottom:'16px'}}>
+      <Btn variant="gold" onClick={run} disabled={running||!pattern}>{running?'⟳  Processing…':dryRun?'⟳  Simulate Run':'⟳  Execute'}</Btn>
+      {results&&<Btn variant="ghost" onClick={()=>setResults(null)}>Clear Results</Btn>}
+    </div>
+    {results&&(
+      <Panel title="Results">
+        <div className="count-row">
+          <span className="count-item"><span style={{color:'var(--gold)'}}>◆</span>{results.length} Pages</span>
+          <span className="count-item"><span style={{color:'var(--green-bright)'}}>✦</span>{results.filter(r=>r.type==='edit').length} Edited</span>
+          <span className="count-item"><span style={{color:'var(--parchment-dim)'}}>◆</span>{results.filter(r=>r.type==='match').length} Matched</span>
+          <span className="count-item"><span style={{color:'var(--text-muted)'}}>–</span>{results.filter(r=>r.type==='skip').length} Skipped</span>
+          {dryRun&&<span style={{color:'var(--amber)',fontStyle:'italic',fontSize:'10.5px'}}>No changes written to the wiki</span>}
+        </div>
+        <ProgressBar pct={100}/>
+        {results.map((r,i)=><ResultItem key={i} {...r}/>)}
+      </Panel>
+    )}
+  </>);
+}
+
+// ── Mass Edit ────────────────────────────────────────────────────────────────
+function MassEdit(){
+  const{dryRun,addLog}=useApp();
+  const[mode,setMode]=useState('append');
+  const[content,setContent]=useState('== See also ==\n* [[RuneScape Wiki]]\n* [[Jagex]]');
+  const[section,setSection]=useState('');
+  const[pages,setPages]=useState('Grand Exchange\nLumbridge\nFalador\nVarrock');
+  const[source,setSource]=useState('manual');
+  const[catQ,setCatQ]=useState('');
+  const[summary,setSummary]=useState('Mass edit via RS3 Wiki Toolkit');
+  const[results,setResults]=useState(null);
+  const[pct,setPct]=useState(0);
+  const[running,setRunning]=useState(false);
+  function run(){
+    setRunning(true);setResults(null);setPct(0);
+    const list=pages.split('\n').map(p=>p.trim()).filter(Boolean);
+    const res=[];let done=0;
+    const iv=setInterval(()=>{
+      if(done>=list.length){clearInterval(iv);setRunning(false);setResults(res);addLog({tool:'mass-edit',action:dryRun?'Simulate Mass Edit':'Execute Mass Edit',dryRun,params:{mode,section:section||'N/A',contentLength:content.length,pages:list.length,editSummary:summary,source},status:'completed',summary:`${res.filter(r=>r.type==='edit').length}/${list.length} pages ${mode}ed`,entries:res});return;}
+      res.push({type:'edit',page:list[done],detail:`${mode} — ${content.length} chars${dryRun?' [simulated]':''}`});
+      done++;setPct(Math.round((done/list.length)*100));
+    },260);
+  }
+  return(<>
+    <Panel title="Edit Configuration" icon="⊞">
+      <div className="row">
+        <Field label="Edit Mode"><select value={mode} onChange={e=>setMode(e.target.value)}><option value="append">Append to Page</option><option value="prepend">Prepend to Page</option><option value="replace-section">Replace Section</option><option value="new-page">Create New Page</option></select></Field>
+        {mode==='replace-section'&&<Field label="Section Heading"><input className="rune-text" value={section} onChange={e=>setSection(e.target.value)} placeholder="== Section Name =="/></Field>}
+      </div>
+      <Field label="Wikitext Content"><textarea value={content} onChange={e=>setContent(e.target.value)} rows={6}/></Field>
+    </Panel>
+    <Panel title="Target Pages" icon="☰">
+      <div className="row">
+        <Field label="Source"><select value={source} onChange={e=>setSource(e.target.value)}><option value="manual">Manual list</option><option value="category">Category members</option><option value="search">Search results</option><option value="linked">Linked pages</option></select></Field>
+        {source!=='manual'&&<Field label="Category / Query" grow={2}><input className="rune-text" value={catQ} onChange={e=>setCatQ(e.target.value)} placeholder="Category:Monsters"/></Field>}
+      </div>
+      <Field label="Manual Page List"><textarea value={pages} onChange={e=>setPages(e.target.value)} rows={4}/></Field>
+      <div className="row" style={{marginTop:'10px'}}><Field label="Edit Summary"><input value={summary} onChange={e=>setSummary(e.target.value)}/></Field></div>
+    </Panel>
+    <div className="row">
+      <Btn variant="gold" onClick={run} disabled={running}>{running?'⟳  Processing…':dryRun?'⟳  Simulate':'⟳  Apply to All'}</Btn>
+      <Btn variant="danger" disabled={!running}>✕  Abort</Btn>
+    </div>
+    {(running||results)&&(
+      <Panel title="Execution Log" icon="☰">
+        <ProgressBar pct={pct}/>
+        <div style={{fontSize:'10.5px',color:'var(--parchment-dim)',fontFamily:'var(--font-mono)',margin:'6px 0 10px',fontStyle:'italic'}}>
+          {running?`Processing… ${results?results.length:0} / ${pages.split('\n').filter(Boolean).length}`:`Complete — ${results?.length} pages processed`}
+        </div>
+        {results&&results.map((r,i)=><ResultItem key={i} {...r}/>)}
+      </Panel>
+    )}
+  </>);
+}
+
+// ── Template Inspector ───────────────────────────────────────────────────────
+function TemplateCheck(){
+  const{dryRun,addLog}=useApp();
+  const[tmpl,setTmpl]=useState('Infobox Monster');
+  const[scope,setScope]=useState('transclusions');
+  const[checks,setChecks]=useState({required:true,unknown:true,dupes:true,types:false});
+  const[results,setResults]=useState(null);
+  function run(){
+    const res=[
+      {type:'match',page:'Elvarg',detail:`{{${tmpl}|name=Elvarg|combat=83|slayer=1|weakness=Air spells}}`},
+      {type:'error',page:'King Black Dragon',detail:'Missing required param: |weakness='},
+      {type:'warn',page:'Kalphite Queen',detail:'Unknown param: |dmg= — did you mean |max_hit=?'},
+      {type:'error',page:'Corporeal Beast',detail:'Duplicate key detected: |name= appears twice'},
+      {type:'match',page:'Dagannoth Rex',detail:`{{${tmpl}|name=Dagannoth Rex|combat=303|slayer=1|weakness=Melee}}`},
+      {type:'skip',page:'Tutorial Island',detail:'Template not present on page'},
+    ];
+    setResults(res);
+    addLog({tool:'template-check',action:'Inspect Template Usage',dryRun,params:{template:tmpl,scope,checks},status:'completed',summary:`Scanned ${res.length} pages — ${res.filter(r=>r.type==='error').length} errors, ${res.filter(r=>r.type==='warn').length} warnings`,entries:res});
+  }
+  return(<>
+    <Panel title="Template Search" icon="⊛">
+      <div className="row">
+        <Field label="Template Name" grow={3} minW="180px"><input className="rune-text" value={tmpl} onChange={e=>setTmpl(e.target.value)} placeholder="Infobox Item"/></Field>
+        <Field label="Scope"><select value={scope} onChange={e=>setScope(e.target.value)}><option value="transclusions">All transclusions</option><option value="category">Category members</option><option value="manual">Manual list</option></select></Field>
+      </div>
+      <div style={{display:'flex',gap:'14px',flexWrap:'wrap'}}>
+        {Object.entries({required:'Required params',unknown:'Unknown params',dupes:'Duplicate keys',types:'Type validation'}).map(([k,label])=>(
+          <label key={k} className="check-row"><input type="checkbox" checked={checks[k]} onChange={e=>setChecks(c=>({...c,[k]:e.target.checked}))}/> {label}</label>
+        ))}
+      </div>
+    </Panel>
+    <div className="row"><Btn variant="gold" onClick={run}>⊛  Inspect Template</Btn></div>
+    {results&&(
+      <Panel title={`Results — {{${tmpl}}}`}>
+        <div className="count-row">
+          <span className="count-item"><span style={{color:'var(--gold)'}}>◆</span>{results.length} Pages</span>
+          <span className="count-item"><span style={{color:'var(--red-bright)'}}>✕</span>{results.filter(r=>r.type==='error').length} Errors</span>
+          <span className="count-item"><span style={{color:'var(--amber-bright)'}}>▲</span>{results.filter(r=>r.type==='warn').length} Warnings</span>
+          <span className="count-item"><span style={{color:'var(--green-bright)'}}>✦</span>{results.filter(r=>r.type==='match').length} Valid</span>
+        </div>
+        {results.map((r,i)=><ResultItem key={i} {...r}/>)}
+      </Panel>
+    )}
+  </>);
+}
+
+// ── Category Manager ─────────────────────────────────────────────────────────
+function CategoryMgr(){
+  const{dryRun,addLog}=useApp();
+  const[action,setAction]=useState('add');
+  const[cat,setCat]=useState('');
+  const[newCat,setNewCat]=useState('');
+  const[pages,setPages]=useState('Dragon scimitar\nDragon longsword\nDragon battleaxe\nDragon dagger');
+  const[summary,setSummary]=useState('Category operation via RS3 Wiki Toolkit');
+  const[results,setResults]=useState(null);
+  function run(){
+    const list=pages.split('\n').map(p=>p.trim()).filter(Boolean);
+    const res=list.map((page,i)=>{
+      if(action==='audit')return{type:'match',page,detail:`Member of [[Category:${cat||'Weapons'}]] — valid`};
+      if(i===list.length-1)return{type:'skip',page,detail:'Category already present — no change made'};
+      return{type:'edit',page,detail:`${action==='add'?'Added':'Removed'} [[Category:${cat}]]${dryRun?' [simulated]':''}`};
+    });
+    setResults(res);
+    addLog({tool:'category-mgr',action:`Category ${action.charAt(0).toUpperCase()+action.slice(1)}`,dryRun,params:{action,category:cat,newCategory:newCat||'N/A',pages:list.length,editSummary:summary},status:'completed',summary:`${res.filter(r=>r.type==='edit').length}/${list.length} pages modified`,entries:res});
+  }
+  return(<>
+    <Panel title="Category Operation" icon="⊟">
+      <div className="row">
+        <Field label="Action"><select value={action} onChange={e=>setAction(e.target.value)}><option value="add">Add Category</option><option value="remove">Remove Category</option><option value="rename">Rename Category</option><option value="audit">Audit Members</option></select></Field>
+        <Field label="Category" grow={2}><input className="rune-text" value={cat} onChange={e=>setCat(e.target.value)} placeholder="Weapons"/></Field>
+        {action==='rename'&&<Field label="New Name" grow={2}><input className="rune-text" value={newCat} onChange={e=>setNewCat(e.target.value)} placeholder="Melee weapons"/></Field>}
+      </div>
+      {action!=='audit'&&<Field label="Pages — one per line"><textarea value={pages} onChange={e=>setPages(e.target.value)} rows={4}/></Field>}
+      <div className="row" style={{marginTop:'10px'}}><Field label="Edit Summary"><input value={summary} onChange={e=>setSummary(e.target.value)}/></Field></div>
+    </Panel>
+    <div className="row"><Btn variant="gold" onClick={run}>{dryRun?'⟳  Simulate':'⟳  Apply'}</Btn></div>
+    {results&&<Panel title="Results">{results.map((r,i)=><ResultItem key={i} {...r}/>)}</Panel>}
+  </>);
+}
+
+// ── Dead Link Scanner ────────────────────────────────────────────────────────
+function DeadLinks(){
+  const{dryRun,addLog}=useApp();
+  const[scope,setScope]=useState('category');
+  const[query,setQuery]=useState('');
+  const[checks,setChecks]=useState({broken:true,redirs:true,external:false,double:true,orphans:false});
+  const[results,setResults]=useState(null);
+  const[running,setRunning]=useState(false);
+  function run(){
+    setRunning(true);
+    setTimeout(()=>{
+      const res=[
+        {type:'error',page:'Wilderness Resource Area',detail:'[[Mage of Zamorak (Wilderness)]] — page does not exist'},
+        {type:'error',page:'God Wars Dungeon',detail:'[[Nex: Angel of Death/Strategies]] — broken redirect chain'},
+        {type:'warn',page:'Elite Dungeons',detail:'[[Temple of Aminishi]] → [[Player-owned ports]] — double redirect'},
+        {type:'match',page:'Grand Exchange',detail:'[[Merchant]] → [[Trader]] — valid redirect, no issues'},
+        {type:'skip',page:'Tutorial Island',detail:'No internal wikilinks found on page'},
+        {type:'error',page:'Player-owned house',detail:'[[Construction/Training]] — page deleted'},
+      ];
+      setResults(res);setRunning(false);
+      addLog({tool:'dead-links',action:'Scan for Dead Links',dryRun,params:{scope,query:query||'N/A',checks},status:'completed',summary:`${res.filter(r=>r.type==='error').length} broken, ${res.filter(r=>r.type==='warn').length} warnings, ${res.filter(r=>r.type==='match').length} valid`,entries:res});
+    },700);
+  }
+  function autoFix(){
+    addLog({tool:'dead-links',action:'Auto-fix Safe Dead Links',dryRun,params:{scope:'last-scan-results',fixType:'safe-redirects'},status:'completed',summary:`Auto-fix applied to 1 safe redirect${dryRun?' [simulated]':''}`,entries:[{type:'edit',page:'Grand Exchange',detail:"Updated redirect [[Merchant]] → [[Trader]]"}]});
+  }
+  return(<>
+    <Panel title="Scan Configuration" icon="⊘">
+      <div className="row">
+        <Field label="Scan Scope"><select value={scope} onChange={e=>setScope(e.target.value)}><option value="category">Category members</option><option value="list">Manual page list</option><option value="namespace">Entire namespace</option><option value="recent">Recent changes</option></select></Field>
+        <Field label={scope==='category'?'Category':'Root / Query'} grow={2}><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Category:Minigames"/></Field>
+      </div>
+      <div style={{display:'flex',gap:'14px',flexWrap:'wrap'}}>
+        {Object.entries({broken:'Broken links',redirs:'Broken redirects',external:'External 404s',double:'Double redirects',orphans:'Orphaned pages'}).map(([k,label])=>(
+          <label key={k} className="check-row"><input type="checkbox" checked={checks[k]} onChange={e=>setChecks(c=>({...c,[k]:e.target.checked}))}/> {label}</label>
+        ))}
+      </div>
+    </Panel>
+    <div className="row">
+      <Btn variant="gold" onClick={run} disabled={running}>{running?'⟳  Scanning…':'⊘  Begin Scan'}</Btn>
+      {results&&<Btn variant="success" onClick={autoFix}>✦  Auto-fix Safe Issues</Btn>}
+    </div>
+    {results&&(
+      <Panel title="Scan Results">
+        <div className="count-row">
+          <span className="count-item"><span style={{color:'var(--red-bright)'}}>✕</span>{results.filter(r=>r.type==='error').length} Broken</span>
+          <span className="count-item"><span style={{color:'var(--amber-bright)'}}>▲</span>{results.filter(r=>r.type==='warn').length} Warnings</span>
+          <span className="count-item"><span style={{color:'var(--green-bright)'}}>✦</span>{results.filter(r=>r.type==='match').length} Valid</span>
+          <span className="count-item"><span style={{color:'var(--text-muted)'}}>–</span>{results.filter(r=>r.type==='skip').length} Skipped</span>
+        </div>
+        {results.map((r,i)=><ResultItem key={i} {...r}/>)}
+      </Panel>
+    )}
+  </>);
+}
+
+// ── Page Diff ────────────────────────────────────────────────────────────────
+function PageDiff(){
+  const{addLog}=useApp();
+  const[page,setPage]=useState('Zaros');
+  const[revA,setRevA]=useState('prev');
+  const[revB,setRevB]=useState('cur');
+  const[shown,setShown]=useState(false);
+  function load(){
+    setShown(true);
+    addLog({tool:'page-diff',action:'Load Page Diff',dryRun:false,params:{page,revisionA:revA,revisionB:revB},status:'completed',summary:`Loaded diff for "${page}" (${revA} → ${revB})`,entries:[{type:'match',page,detail:`Revision ${revA} → ${revB} loaded successfully`}]});
+  }
+  return(<>
+    <Panel title="Diff Viewer" icon="⊕">
+      <div className="row">
+        <Field label="Page Title" grow={3}><input value={page} onChange={e=>setPage(e.target.value)}/></Field>
+        <Field label="Revision A"><input className="rune-text" value={revA} onChange={e=>setRevA(e.target.value)}/></Field>
+        <Field label="Revision B"><input className="rune-text" value={revB} onChange={e=>setRevB(e.target.value)}/></Field>
+      </div>
+      <div className="row">
+        <Btn variant="gold" onClick={load}>⊕  Load Diff</Btn>
+        <Btn variant="ghost">⟲  Revision History</Btn>
+      </div>
+    </Panel>
+    {shown&&(
+      <Panel title={`Revision Diff — ${page}`}>
+        <div style={{fontFamily:'var(--font-mono)',fontSize:'10.5px',color:'var(--parchment-dim)',marginBottom:'10px',borderBottom:'1px solid var(--gold-border)',paddingBottom:'8px'}}>
+          <span style={{color:'var(--gold)'}}>rev 8821034</span><span style={{color:'var(--text-muted)'}}> → </span><span style={{color:'var(--gold)'}}>rev 8821098</span>
+          {'    '}Edited by <span style={{color:'var(--parchment)'}}>Mod Rowley</span>{'    '}3 changes
+        </div>
+        <div className="diff-ctx">  Zaros is an ancient and extremely powerful deity in RuneScape.</div>
+        <div className="diff-old">- He is often referred to as the "Empty Lord" due to his absence.</div>
+        <div className="diff-new">+ He is often referred to as the "Empty Lord" due to his long absence from Gielinor.</div>
+        <div className="diff-ctx">&nbsp;</div>
+        <div className="diff-old">- Zaros was banished by Zamorak using the Staff of Armadyl.</div>
+        <div className="diff-new">+ Zaros was banished by Zamorak using the Elder Artefact known as the Staff of Armadyl.</div>
+        <div className="diff-ctx">  This event is known as the Betrayal of Zaros.</div>
+        <div className="diff-ctx">&nbsp;</div>
+        <div className="diff-old">- He returned during the events of [[Fate of the Gods]].</div>
+        <div className="diff-new">+ He returned to partial power during the events of [[Fate of the Gods]] (2014).</div>
+      </Panel>
+    )}
+  </>);
+}
+
+// ── Action Log ───────────────────────────────────────────────────────────────
+function ActionLog(){
+  const{log,clearLog}=useApp();
+  const[expanded,setExpanded]=useState({});
+  const[filter,setFilter]=useState('all');
+  const[toolFilter,setToolFilter]=useState('all');
+  const toggle=id=>setExpanded(e=>({...e,[id]:!e[id]}));
+  function exportLog(){
+    const blob=new Blob([JSON.stringify(log,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`rs3-wiki-log-${Date.now()}.json`;a.click();URL.revokeObjectURL(url);
+  }
+  const tools=[...new Set(log.map(e=>e.tool))];
+  const filtered=log.filter(e=>{
+    const mOk=filter==='all'||(filter==='dry'&&e.dryRun)||(filter==='live'&&!e.dryRun);
+    const tOk=toolFilter==='all'||e.tool===toolFilter;
+    return mOk&&tOk;
+  });
+  return(<>
+    <Panel title="Log Controls" icon="☰">
+      <div className="row">
+        <Field label="Mode Filter"><select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">All Entries</option><option value="dry">Dry Run Only</option><option value="live">Live Only</option></select></Field>
+        <Field label="Tool Filter"><select value={toolFilter} onChange={e=>setToolFilter(e.target.value)}><option value="all">All Tools</option>{tools.map(t=><option key={t} value={t}>{NAMES[t]||t}</option>)}</select></Field>
+      </div>
+      <div style={{display:'flex',gap:'8px'}}>
+        <Btn variant="gold" onClick={exportLog} disabled={log.length===0}>↓  Export JSON</Btn>
+        <Btn variant="danger" onClick={clearLog} disabled={log.length===0}>✕  Clear All</Btn>
+      </div>
+      <Divider/>
+      <div style={{fontFamily:'var(--font-heading)',fontSize:'10.5px',color:'var(--parchment-dim)',letterSpacing:'0.05em'}}>
+        Showing <span style={{color:'var(--gold)'}}>{filtered.length}</span> of <span style={{color:'var(--parchment)'}}>{log.length}</span> entries
+      </div>
+    </Panel>
+    {filtered.length===0&&(
+      <div style={{textAlign:'center',padding:'52px 0',color:'var(--text-muted)'}}>
+        <div style={{fontSize:'32px',marginBottom:'12px',opacity:0.25}}>☰</div>
+        <div style={{fontFamily:'var(--font-heading)',fontSize:'12px',letterSpacing:'0.1em',textTransform:'uppercase'}}>No Entries Recorded</div>
+        <div style={{fontFamily:'var(--font-body)',fontStyle:'italic',fontSize:'11px',color:'var(--parchment-mut)',marginTop:'6px'}}>Use any tool to generate log entries</div>
+      </div>
+    )}
+    {[...filtered].reverse().map(entry=>(
+      <div key={entry.id} className="rs-panel" style={{marginBottom:'8px'}}>
+        <div className="log-entry" onClick={()=>toggle(entry.id)}>
+          <div className="log-meta">
+            <span className="log-ts">{entry.date} {entry.time}</span>
+            <span className="log-tool">{NAMES[entry.tool]||entry.tool}</span>
+            <span className="log-act">— {entry.action}</span>
+            <StatusPill status={entry.status} dryRun={entry.dryRun}/>
+            <span className="log-expand">{expanded[entry.id]?'▲':'▼'}</span>
+          </div>
+          <div className="log-sum">{entry.summary}</div>
+        </div>
+        {expanded[entry.id]&&(
+          <div className="log-detail-area">
+            <div className="log-params">
+              <div className="log-sect">◆  Parameters</div>
+              {Object.entries(entry.params).map(([k,v])=>(
+                <div key={k} className="log-param"><span className="log-pk">{k}</span><span className="log-pv">{typeof v==='object'?JSON.stringify(v):String(v)}</span></div>
+              ))}
+            </div>
+            {entry.entries&&entry.entries.length>0&&(
+              <div style={{padding:'0 14px 12px',borderTop:'1px solid var(--gold-border)'}}>
+                <div className="log-sect" style={{marginTop:'10px'}}>◆  Page Results ({entry.entries.length})</div>
+                {entry.entries.map((e,i)=><ResultItem key={i} {...e}/>)}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    ))}
+  </>);
+}
+
+// ── Settings ─────────────────────────────────────────────────────────────────
+function Settings(){
+  const{settings,setSettings,addLog}=useApp();
+  const[saved,setSaved]=useState(false);
+  const[tested,setTested]=useState(null);
+  const upd=k=>e=>setSettings(s=>({...s,[k]:e.target.value}));
+  const ckd=k=>e=>setSettings(s=>({...s,[k]:e.target.checked}));
+  function save(){
+    setSaved(true);setTimeout(()=>setSaved(false),2200);
+    addLog({tool:'settings',action:'Save Settings',dryRun:false,params:{apiUrl:settings.apiUrl,username:settings.username,delay:settings.delay,markBot:settings.markBot,minor:settings.minor,summaryPrefix:settings.summaryPrefix},status:'completed',summary:'Settings saved — credentials are not recorded in log',entries:[]});
+  }
+  function testConn(){
+    setTested('testing');
+    addLog({tool:'settings',action:'Test Wiki Connection',dryRun:false,params:{apiUrl:settings.apiUrl,username:settings.username},status:'running',summary:`Testing connection to ${settings.apiUrl||'(no URL set)'}`,entries:[]});
+    setTimeout(()=>{
+      const ok=settings.apiUrl&&settings.username&&settings.password;
+      setTested(ok?'ok':'fail');
+      addLog({tool:'settings',action:'Connection Test Result',dryRun:false,params:{apiUrl:settings.apiUrl},status:ok?'completed':'error',summary:ok?`Connected to ${settings.apiUrl}`:'Connection failed — check credentials',entries:[{type:ok?'match':'error',page:'API Endpoint',detail:ok?'200 OK — Authenticated successfully':'Authentication failed or URL unreachable'}]});
+    },1000);
+  }
+  return(
+    <div style={{maxWidth:'640px'}}>
+      <Panel title="Wiki Connection" icon="⚙">
+        <div className="setting-row">
+          <label className="field-label">Wiki API Endpoint</label>
+          <input className="rune-text" value={settings.apiUrl} onChange={upd('apiUrl')}/>
+          <div className="setting-hint">The MediaWiki API endpoint for the RuneScape 3 wiki.</div>
+        </div>
+        <div className="setting-row">
+          <label className="field-label">Username / Bot Account</label>
+          <input value={settings.username} onChange={upd('username')} placeholder="WikiBot@BotAccount"/>
+          <div className="setting-hint">Your wiki login, or bot account name (e.g. Username@BotName).</div>
+        </div>
+        <div className="setting-row">
+          <label className="field-label">Bot Password / OAuth Token</label>
+          <input type="password" className="rune-text" value={settings.password} onChange={upd('password')} placeholder="••••••••••••••••••••"/>
+          <div className="setting-hint">Generate at Special:BotPasswords. Never recorded in the action log.</div>
+        </div>
+        <div className="setting-row">
+          <label className="field-label">Request Delay (ms)</label>
+          <input type="number" value={settings.delay} onChange={upd('delay')} min={0} max={5000} style={{maxWidth:'120px'}}/>
+          <div className="setting-hint">Delay between sequential API requests. Minimum 500ms recommended.</div>
+        </div>
+      </Panel>
+      <Panel title="Default Behaviour" icon="⊞">
+        <div className="setting-row">
+          <label className="check-row"><input type="checkbox" checked={settings.markBot} onChange={ckd('markBot')}/> Mark all edits as bot edits</label>
+          <div className="setting-hint">Flags automated edits in the wiki's recent changes feed.</div>
+        </div>
+        <div className="setting-row">
+          <label className="check-row"><input type="checkbox" checked={settings.minor} onChange={ckd('minor')}/> Mark all edits as minor by default</label>
+          <div className="setting-hint">Applies the minor edit flag unless overridden per operation.</div>
+        </div>
+        <div className="setting-row">
+          <label className="field-label">Default Edit Summary Prefix</label>
+          <input value={settings.summaryPrefix} onChange={upd('summaryPrefix')}/>
+          <div className="setting-hint">Prepended automatically to all edit summaries across every tool.</div>
+        </div>
+      </Panel>
+      <Panel title="Connection Test" icon="⟲">
+        <div style={{display:'flex',gap:'12px',alignItems:'center',flexWrap:'wrap'}}>
+          <Btn variant="gold" onClick={testConn}>⟲  Test Connection</Btn>
+          {tested==='testing'&&<span style={{fontFamily:'var(--font-body)',fontStyle:'italic',fontSize:'11.5px',color:'var(--parchment-dim)'}}>Connecting…</span>}
+          {tested==='ok'&&<span style={{fontFamily:'var(--font-heading)',fontSize:'11px',color:'var(--green-bright)',letterSpacing:'0.05em'}}>✦ Connected — authenticated as {settings.username}</span>}
+          {tested==='fail'&&<span style={{fontFamily:'var(--font-heading)',fontSize:'11px',color:'var(--red-bright)',letterSpacing:'0.05em'}}>✕ Failed — check credentials or API URL</span>}
+        </div>
+      </Panel>
+      <div className="row">
+        <Btn variant="success" onClick={save}>{saved?'✦  Saved':'⊛  Save Settings'}</Btn>
+        <Btn variant="danger" onClick={()=>setSettings({apiUrl:'https://runescape.wiki/api.php',username:'',password:'',delay:500,markBot:true,minor:false,summaryPrefix:'[wiki-toolkit]'})}>⟲  Reset Defaults</Btn>
+      </div>
+    </div>
+  );
+}
+
+// ── Nav ───────────────────────────────────────────────────────────────────────
+const NAV_GROUPS=[
+  {label:'Editing',items:['find-replace','mass-edit']},
+  {label:'Auditing',items:['template-check','dead-links']},
+  {label:'Managing',items:['category-mgr']},
+  {label:'Review',items:['page-diff']},
+  {label:null,items:['log','settings']},
+];
+const NAV_TAGS={
+  'find-replace':{label:'EDIT',bg:'#0a1e0a',color:'#80c050',border:'#1a3a0a'},
+  'mass-edit':{label:'EDIT',bg:'#0a1e0a',color:'#80c050',border:'#1a3a0a'},
+  'template-check':{label:'AUDIT',bg:'#1e1208',color:'#e09840',border:'#3a2008'},
+  'dead-links':{label:'AUDIT',bg:'#1e1208',color:'#e09840',border:'#3a2008'},
+  'category-mgr':{label:'MANAGE',bg:'#08101e',color:'#6898d0',border:'#0a1a38'},
+  'page-diff':{label:'REVIEW',bg:'#1a0e18',color:'#b898e0',border:'#2a1438'},
+};
+const COMPONENTS={'find-replace':FindReplace,'mass-edit':MassEdit,'template-check':TemplateCheck,'category-mgr':CategoryMgr,'dead-links':DeadLinks,'page-diff':PageDiff,'log':ActionLog,'settings':Settings};
+
+// ── Root ──────────────────────────────────────────────────────────────────────
+function App(){
+  const[active,setActive]=useState('find-replace');
+  const[dryRun,setDryRun]=useState(true);
+  const[sideOpen,setSideOpen]=useState(false);
+  const[log,setLog]=useState([]);
+  const[settings,setSettings]=useState({apiUrl:'https://runescape.wiki/api.php',username:'',password:'',delay:500,markBot:true,minor:false,summaryPrefix:'[wiki-toolkit]'});
+  const addLog=useCallback(entry=>setLog(prev=>[...prev,{id:uid(),date:dated(),time:stamp(),...entry}]),[]);
+  const clearLog=useCallback(()=>setLog([]),[]);
+  function nav(id){setActive(id);setSideOpen(false);}
+  const ActiveComp=COMPONENTS[active]||(()=><div>Not found</div>);
+  const tagDef=NAV_TAGS[active];
+  return(
+    <AppCtx.Provider value={{dryRun,setDryRun,settings,setSettings,log,addLog,clearLog}}>
+      <div className="app">
+        <div className={`overlay ${sideOpen?'show':''}`} onClick={()=>setSideOpen(false)}/>
+        <aside className={`sidebar ${sideOpen?'open':''}`}>
+          <div className="sidebar-header">
+            <div className="logo-title">RuneScape Wiki<br/>Toolkit</div>
+            <div className="logo-sub">runescape.wiki · Editor Suite</div>
+          </div>
+          <nav className="nav-section">
+            {NAV_GROUPS.map(({label,items})=>(
+              <div key={label||'misc'} style={{marginBottom:'4px'}}>
+                {label&&<div className="nav-group-label">{label}</div>}
+                {items.map(id=>{
+                  const tag=NAV_TAGS[id];
+                  return(
+                    <div key={id} className={`nav-item ${active===id?'active':''}`} onClick={()=>nav(id)}>
+                      <span className="nav-icon">{ICONS[id]}</span>
+                      <span className="nav-name">{NAMES[id]}</span>
+                      {id==='log'&&log.length>0&&<span className="log-count">{log.length}</span>}
+                      {tag&&<span className="nav-tag" style={{background:tag.bg,color:tag.color,border:`1px solid ${tag.border}`}}>{tag.label}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </nav>
+          <div className={`dry-toggle ${dryRun?'active':''}`} onClick={()=>setDryRun(d=>!d)}>
+            <div>
+              <div className="dry-label">Dry Run Mode</div>
+              <div className="dry-hint">{dryRun?'No changes written to wiki':'Live — edits will be saved'}</div>
+            </div>
+            <div className={`toggle-track ${dryRun?'on':''}`}><div className="toggle-knob"/></div>
+          </div>
+        </aside>
+        <main className="main">
+          <header className="topbar">
+            <div className="hamburger" onClick={()=>setSideOpen(s=>!s)}><span/><span/><span/></div>
+            <span className="topbar-title">{ICONS[active]}  {NAMES[active]}</span>
+            <DryBadge/>
+            {tagDef&&<span className="topbar-pill" style={{background:tagDef.bg,color:tagDef.color,borderColor:tagDef.border}}>{tagDef.label}</span>}
+            <div className="wiki-conn">
+              <div className={`conn-dot ${settings.username?'dot-live':''}`} style={{background:settings.username?'var(--green)':'var(--text-muted)',width:'5px',height:'5px'}}/>
+              runescape.wiki
+            </div>
+          </header>
+          <div className="content"><ActiveComp/></div>
+          <footer className="statusbar">
+            <div className="status-item"><div style={{width:'5px',height:'5px',background:dryRun?'var(--amber)':'var(--green)',flexShrink:0}}/>{dryRun?'Dry Run Active':'Live Mode'}</div>
+            <div className="status-item"><div style={{width:'5px',height:'5px',background:settings.username?'var(--green)':'var(--red-dim)',flexShrink:0}}/>{settings.username||'Not Authenticated'}</div>
+            <div className="status-item">☰ {log.length} Log Entries</div>
+            <div style={{flex:1}}/>
+            <div className="status-item" style={{opacity:0.35}}>rs3-wiki-toolkit v0.1.0</div>
+          </footer>
+        </main>
+      </div>
+    </AppCtx.Provider>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
