@@ -1,0 +1,26 @@
+{
+  "name": "rs3-wiki-toolkit",
+  "private": true,
+  "version": "0.2.0",
+  "homepage": "https://xXBlackHawkXx.github.io/RuneScapeWikiToolkit",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "6.0.1",
+    "gh-pages": "^6.3.0",
+    "typescript": "5.9.3",
+    "vite": "8.0.0"
+  }
+}
