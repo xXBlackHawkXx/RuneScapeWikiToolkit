@@ -7,8 +7,8 @@ export function createMediaWikiClient(getSettings: () => AppSettings) {
   let csrfToken: string | null = null;
   let loggedIn = false;
   const configuredBackendUrl = import.meta.env.VITE_BACKEND_URL;
-  const proxyBase = (import.meta.env.DEV ? '/api' : (configuredBackendUrl || '')).replace(/\/$/, '');
-  const proxyEndpoint = `${proxyBase}/mediawiki`;
+  const proxyBase = (import.meta.env.DEV ? '' : (configuredBackendUrl || '')).replace(/\/$/, '');
+  const proxyEndpoint = `${proxyBase}/api/mediawiki`;
 
   async function request<T>(params: Record<string, string | number | boolean | undefined>, init?: RequestInit) {
     if (!import.meta.env.DEV && !configuredBackendUrl) {
