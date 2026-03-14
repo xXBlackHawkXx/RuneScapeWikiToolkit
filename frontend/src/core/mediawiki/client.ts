@@ -7,10 +7,14 @@ export function createMediaWikiClient(getSettings: () => AppSettings) {
   let csrfToken: string | null = null;
   let loggedIn = false;
   const configuredBackendUrl = import.meta.env.VITE_BACKEND_URL;
-  const proxyBase = (import.meta.env.DEV ? '/api' : (configuredBackendUrl || '/api')).replace(/\/$/, '');
+  const proxyBase = (import.meta.env.DEV ? '/api' : (configuredBackendUrl || '')).replace(/\/$/, '');
   const proxyEndpoint = `${proxyBase}/mediawiki`;
 
   async function request<T>(params: Record<string, string | number | boolean | undefined>, init?: RequestInit) {
+    if (!import.meta.env.DEV && !configuredBackendUrl) {
+      throw new Error('Missing VITE_BACKEND_URL in this production build. Configure it to your backend /api URL.');
+    }
+
     const settings = getSettings();
     const method = init?.method ?? 'GET';
     const finalInit: RequestInit = {
@@ -353,6 +357,3 @@ export function createMediaWikiClient(getSettings: () => AppSettings) {
     delay,
   };
 }
-
-
-

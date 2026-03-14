@@ -33,7 +33,7 @@ Create `frontend/.env` when deploying frontend separately:
 VITE_BACKEND_URL=https://your-render-service.onrender.com/api
 ```
 
-If omitted, frontend defaults to `/api` (ideal for local proxying).
+`VITE_BACKEND_URL` is required for production/static deployments (for example GitHub Pages). The GitHub Pages workflow reads it from repo `secrets.VITE_BACKEND_URL` (or `vars.VITE_BACKEND_URL` as fallback).
 
 ## Backend environment (Render)
 
