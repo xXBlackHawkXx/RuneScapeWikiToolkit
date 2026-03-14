@@ -1,4 +1,6 @@
 node_modules
-dist
+frontend/dist
+backend/dist
 .vscode
 .DS_Store
+.env

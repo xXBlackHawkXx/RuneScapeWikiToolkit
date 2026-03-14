@@ -12,6 +12,7 @@ function sanitizeSettings(settings: AppSettings): AppSettings {
   return {
     ...settings,
     password: '',
+    oathToken: '',
   };
 }
 
@@ -75,3 +76,4 @@ export function useAppContext() {
   }
   return context;
 }
+

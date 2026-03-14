@@ -6,32 +6,15 @@ export type MediaWikiClient = ReturnType<typeof createMediaWikiClient>;
 export function createMediaWikiClient(getSettings: () => AppSettings) {
   let csrfToken: string | null = null;
   let loggedIn = false;
-  const corsOrigin = typeof window !== 'undefined' ? window.location.origin : '*';
-
-  function shouldIncludeCredentials(params: Record<string, string | number | boolean | undefined>) {
-    const action = String(params.action ?? '');
-    const meta = String(params.meta ?? '');
-    const tokenType = String(params.type ?? '').toLowerCase();
-    if (action === 'login' || action === 'edit') {
-      return true;
-    }
-    if (action === 'query' && meta.includes('tokens')) {
-      // Login token requests do not require cookies and can be blocked by
-      // CORS policies that disallow credentialed wildcard origins.
-      if (tokenType === 'login') {
-        return false;
-      }
-      return true;
-    }
-    return false;
-  }
+  const configuredBackendUrl = import.meta.env.VITE_BACKEND_URL;
+  const proxyBase = (import.meta.env.DEV ? '/api' : (configuredBackendUrl || '/api')).replace(/\/$/, '');
+  const proxyEndpoint = `${proxyBase}/mediawiki`;
 
   async function request<T>(params: Record<string, string | number | boolean | undefined>, init?: RequestInit) {
     const settings = getSettings();
-    const url = new URL(settings.apiUrl);
     const method = init?.method ?? 'GET';
     const finalInit: RequestInit = {
-      credentials: init?.credentials ?? (shouldIncludeCredentials(params) ? 'include' : 'omit'),
+      credentials: 'include',
       ...init,
       headers: {
         'Accept': 'application/json',
@@ -40,7 +23,8 @@ export function createMediaWikiClient(getSettings: () => AppSettings) {
     };
 
     if (method === 'GET') {
-      Object.entries({ format: 'json', origin: corsOrigin, ...params }).forEach(([key, value]) => {
+      const url = new URL(proxyEndpoint, window.location.origin);
+      Object.entries({ apiUrl: settings.apiUrl, ...params }).forEach(([key, value]) => {
         if (value !== undefined) {
           url.searchParams.set(key, String(value));
         }
@@ -56,14 +40,15 @@ export function createMediaWikiClient(getSettings: () => AppSettings) {
       return json as T;
     }
 
-    const body = new URLSearchParams();
-    Object.entries({ format: 'json', origin: corsOrigin, ...params }).forEach(([key, value]) => {
-      if (value !== undefined) {
-        body.set(key, String(value));
-      }
+    finalInit.body = JSON.stringify({
+      apiUrl: settings.apiUrl,
+      ...params,
     });
-    finalInit.body = body;
-    const response = await fetch(url, finalInit);
+    finalInit.headers = {
+      'Content-Type': 'application/json',
+      ...finalInit.headers,
+    };
+    const response = await fetch(proxyEndpoint, finalInit);
     if (!response.ok) {
       throw new Error(`MediaWiki request failed: ${response.status}`);
     }
@@ -91,21 +76,85 @@ export function createMediaWikiClient(getSettings: () => AppSettings) {
   async function login() {
     const settings = getSettings();
     if (!settings.username || !settings.password) {
-      throw new Error('Username and bot password are required.');
+      throw new Error('Username and password are required.');
     }
     const token = await getLoginToken();
-    const response = await request<{ login: { result: string; reason?: string } }>(
-      { action: 'login', lgname: settings.username, lgpassword: settings.password, lgtoken: token },
-      { method: 'POST' },
-    );
-    if (response.login.result !== 'Success') {
-      throw new Error(response.login.reason ?? `Login failed: ${response.login.result}`);
+
+    const parseClientLoginFailure = (response: { status: string; message?: string; messagecode?: string }) =>
+      response.messagecode ?? response.message ?? response.status;
+
+    const tryClientLogin = async (params: Record<string, string>) => {
+      const response = await request<{
+        clientlogin: { status: string; message?: string; messagecode?: string };
+      }>(params, { method: 'POST' });
+      return response.clientlogin;
+    };
+
+    try {
+      const response = await request<{ login: { result: string; reason?: string } }>(
+        { action: 'login', lgname: settings.username, lgpassword: settings.password, lgtoken: token },
+        { method: 'POST' },
+      );
+      if (response.login.result !== 'Success') {
+        throw new Error(response.login.reason ?? `Login failed: ${response.login.result}`);
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const requiresClientLogin =
+        errorMessage.includes('not supported by "action=login"') ||
+        errorMessage.includes('Special:ApiHelp/clientlogin');
+
+      if (!requiresClientLogin) {
+        throw error;
+      }
+
+      const firstStep = await tryClientLogin({
+        action: 'clientlogin',
+        username: settings.username,
+        password: settings.password,
+        logintoken: token,
+        loginreturnurl: window.location.href,
+      });
+
+      if (firstStep.status === 'PASS') {
+        loggedIn = true;
+        await getCsrfToken(true);
+        return true;
+      }
+
+      const requiresOath = firstStep.status === 'UI' && firstStep.messagecode === 'oathauth-auth-ui';
+      if (requiresOath) {
+        const oathToken = settings.oathToken.trim();
+        if (!oathToken) {
+          throw new Error('Login requires 2FA. Enter your current 2FA code in Settings and retry.');
+        }
+
+        const secondStep = await tryClientLogin({
+          action: 'clientlogin',
+          username: settings.username,
+          password: settings.password,
+          logintoken: token,
+          loginreturnurl: window.location.href,
+          logincontinue: '1',
+          OATHToken: oathToken,
+        });
+
+        if (secondStep.status !== 'PASS') {
+          throw new Error(`Login failed: ${parseClientLoginFailure(secondStep)}`);
+        }
+
+        loggedIn = true;
+        await getCsrfToken(true);
+        return true;
+      }
+
+      throw new Error(`Login failed: ${parseClientLoginFailure(firstStep)}`);
     }
+
     loggedIn = true;
     await getCsrfToken(true);
     return true;
   }
-
   async function ensureLogin() {
     if (!loggedIn) {
       await login();
@@ -304,3 +353,6 @@ export function createMediaWikiClient(getSettings: () => AppSettings) {
     delay,
   };
 }
+
+
+

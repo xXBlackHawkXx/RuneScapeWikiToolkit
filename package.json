@@ -1,23 +1,21 @@
 {
-  "name": "rs3-wiki-toolkit",
+  "name": "rs3-wiki-toolkit-workspaces",
   "private": true,
-  "version": "0.2.0",
-  "homepage": "https://xXBlackHawkXx.github.io/RuneScapeWikiToolkit",
-  "type": "module",
+  "version": "0.3.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "dev:frontend": "npm run dev --workspace frontend",
+    "dev:backend": "npm run dev --workspace backend",
+    "build": "npm run build --workspaces",
+    "build:frontend": "npm run build --workspace frontend",
+    "build:backend": "npm run build --workspace backend",
+    "start:backend": "npm run start --workspace backend",
+    "dev:all": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\""
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  },
-  "devDependencies": {
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "6.0.1",
-    "typescript": "5.9.3",
-    "vite": "8.0.0"
+    "concurrently": "^9.2.1"
   }
 }

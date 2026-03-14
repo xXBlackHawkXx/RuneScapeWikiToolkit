@@ -1,24 +1,60 @@
-# RS3 Wiki Toolkit
+# RS3 Wiki Toolkit Monorepo
 
-A Vite + React + TypeScript rewrite of the original wireframe, with real MediaWiki Action API plumbing, a pause/resume job queue for bulk work, and a module registry that keeps future tools easy to add.
+This repository is now split into two npm workspaces:
 
-## What is included
+- `frontend` - Vite + React + TypeScript UI
+- `backend` - Fastify API proxy for MediaWiki calls (Render target)
 
-- Real MediaWiki login, token, query, compare, search, category, and edit flows
-- Generic job queue with `pause`, `resume`, `cancel`, `clear`
-- Module registry for easy future module registration
-- Agents folder with scaffolding and architectural guidance for IDE agents
-- Client-side persistence for settings and logs
+## Why this fixes CORS
 
-## Quick start
+The browser no longer calls MediaWiki directly. Instead:
+
+1. Frontend calls the Fastify backend (`/api/mediawiki`)
+2. Backend performs server-to-server requests to the wiki API
+3. Backend keeps MediaWiki session cookies server-side and exposes only a secure app session cookie to the browser
+
+## Local development
 
 ```bash
 npm install
-npm run dev
+npm run dev:backend
+npm run dev:frontend
 ```
 
-## Notes
+- Frontend runs at `http://localhost:5173`
+- Backend runs at `http://localhost:3000`
+- Vite proxies `/api/*` to backend during local development
 
-This is a browser-first toolkit. For authenticated edits, the target wiki must allow the relevant cross-origin requests from your local dev origin. If it does not, run the app behind a small local proxy or deploy it from an allowed origin.
+## Frontend environment
 
-Use bot passwords for login. MediaWiki's login/edit flow requires a login token first, then login, then a CSRF token for edit operations.
+Create `frontend/.env` when deploying frontend separately:
+
+```bash
+VITE_BACKEND_URL=https://your-render-service.onrender.com/api
+```
+
+If omitted, frontend defaults to `/api` (ideal for local proxying).
+
+## Backend environment (Render)
+
+Set these environment variables on Render:
+
+- `PORT` is provided by Render
+- `FRONTEND_ORIGIN` = deployed frontend origin (for example `https://your-site.github.io`)
+- Optional: `CORS_ORIGINS` comma-separated allowlist
+- Optional: `SESSION_COOKIE_SAMESITE=none` (recommended for cross-site frontend/backend)
+- Optional: `SESSION_COOKIE_SECURE=true`
+
+## Render start command
+
+Use workspace start from repo root:
+
+```bash
+npm run start:backend
+```
+
+or directly:
+
+```bash
+npm run start --workspace backend
+```

@@ -45,8 +45,9 @@ function SettingsView() {
       <Panel title="Wiki Connection" icon="⚙">
         <Field label="API URL"><input value={settings.apiUrl} onChange={(event) => update('apiUrl', event.target.value)} /></Field>
         <Field label="Username / bot account"><input value={settings.username} onChange={(event) => update('username', event.target.value)} /></Field>
-        <Field label="Bot password"><input type="password" value={settings.password} onChange={(event) => update('password', event.target.value)} /></Field>
-        <div className="muted small">Password is kept in memory only for this browser session and is never saved to local storage.</div>
+        <Field label="Password / bot password"><input type="password" value={settings.password} onChange={(event) => update('password', event.target.value)} /></Field>
+        <Field label="2FA code (optional)"><input value={settings.oathToken} onChange={(event) => update('oathToken', event.target.value)} placeholder="123456" /></Field>
+        <div className="muted small">Password and 2FA code are kept in memory only for this browser session and are never saved to local storage.</div>
         <Field label="Request delay (ms)"><input type="number" value={settings.requestDelayMs} onChange={(event) => update('requestDelayMs', Number(event.target.value))} /></Field>
         <Field label="Summary prefix"><input value={settings.summaryPrefix} onChange={(event) => update('summaryPrefix', event.target.value)} /></Field>
         <label className="checkbox"><input type="checkbox" checked={settings.bot} onChange={(event) => update('bot', event.target.checked)} /> Mark edits as bot</label>
@@ -70,3 +71,5 @@ export const SettingsModule: ModuleDefinition = {
   group: 'System',
   component: SettingsView,
 };
+
+
