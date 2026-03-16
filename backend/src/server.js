@@ -1,7 +1,6 @@
 import Fastify from 'fastify';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
-import multipart from '@fastify/multipart';
 import { parseAllowedOrigins } from './config/cors.js';
 import { registerMediaWikiRoutes } from './routes/mediawiki.js';
 import { registerFetchPageRoutes } from './routes/fetch-page.js';
@@ -14,12 +13,6 @@ const app = Fastify({
 const allowedOrigins = parseAllowedOrigins();
 
 await app.register(cookie);
-await app.register(multipart, {
-  limits: {
-    files: 200000,
-    fileSize: 10 * 1024 * 1024 * 1024,
-  },
-});
 await app.register(cors, {
   credentials: true,
   origin(origin, callback) {
