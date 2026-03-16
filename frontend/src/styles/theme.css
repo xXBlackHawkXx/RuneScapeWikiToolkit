@@ -942,13 +942,64 @@ button:disabled {
   padding: 0 1px;
 }
 
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--gold-border);
+  background: linear-gradient(180deg, #20190d 0%, #140f08 100%);
+  color: var(--gold-bright);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.mobile-menu-btn:hover {
+  border-color: var(--gold);
+}
+
+.mobile-nav-overlay {
+  display: none;
+}
 @media (max-width: 900px) {
-  .app-shell {
-    display: block;
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(82vw, 300px);
+    min-width: 0;
+    transform: translateX(-102%);
+    transition: transform 0.2s ease;
+    box-shadow: 12px 0 28px rgba(0, 0, 0, 0.45);
   }
 
-  .sidebar {
-    display: none;
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-nav-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    border: 0;
+    background: rgba(8, 6, 3, 0.6);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 90;
+  }
+
+  .app-shell.mobile-nav-open .mobile-nav-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
   }
 
   .content-area {
@@ -957,9 +1008,25 @@ button:disabled {
 
   .topbar {
     min-height: 50px;
+    padding: 0 12px;
   }
 
   .topbar-subtitle {
+    display: none;
+  }
+
+  .topbar-pill,
+  .wiki-conn {
+    display: none;
+  }
+
+  .statusbar {
+    gap: 10px;
+    padding: 0 10px;
+    overflow-x: auto;
+  }
+
+  .status-item:last-child {
     display: none;
   }
 }
@@ -999,3 +1066,4 @@ button:disabled {
 .dot-live {
   animation: blink 2s infinite;
 }
+

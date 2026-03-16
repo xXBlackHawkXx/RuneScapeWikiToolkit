@@ -12,6 +12,7 @@ const TOOL_NAMES: Record<string, string> = {
   'dead-link-scanner': 'Dead Link Scanner',
   'page-diff': 'Page Diff',
   'double-redirect-resolver': 'Double Redirect Resolver',
+  'component-generator': 'Component Generator',
   settings: 'Settings',
 };
 
