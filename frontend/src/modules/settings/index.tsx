@@ -41,7 +41,7 @@ function SettingsView() {
   };
 
   return (
-    <div className="module-stack narrow">
+    <div className="module-stack">
       <Panel title="Wiki Connection" icon="⚙">
         <Field label="API URL"><input value={settings.apiUrl} onChange={(event) => update('apiUrl', event.target.value)} /></Field>
         <Field label="Username / bot account"><input value={settings.username} onChange={(event) => update('username', event.target.value)} /></Field>

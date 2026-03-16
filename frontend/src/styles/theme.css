@@ -196,6 +196,11 @@ button:disabled {
   right: 12px;
 }
 
+.sidebar-footer-nav {
+  border-top: 1px solid rgba(200, 164, 68, 0.22);
+  padding: 8px 6px 0;
+}
+
 .logo-title {
   font-family: var(--font-title);
   font-size: 13px;
@@ -565,10 +570,6 @@ button:disabled {
 
 .status-spacer {
   flex: 1;
-}
-
-.status-item:last-child {
-  opacity: 0.35;
 }
 
 .module-stack {
@@ -1066,4 +1067,3 @@ button:disabled {
 .dot-live {
   animation: blink 2s infinite;
 }
-

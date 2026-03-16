@@ -393,7 +393,7 @@ function inferSlot(componentTitle: string): string | null {
     ['Torso', ['platebody', 'body', 'chest', 'torso', 'robe top', 'top', 'jacket', 'coat', 'shirt', 'cuirass', 'armour', 'brigadine', 'doublet', 'coat top', 'garb top', 'tunic', 'vest', 'breastplate']],
     ['Legs', ['platelegs', 'legs', 'legguards', 'chaps', 'robe bottom', 'bottom', 'trousers', 'pants', 'skirt', 'shorts', 'greaves', 'cuisses', 'breeches', 'leggings', 'coat bottom', 'garb bottom', 'faulds', 'legplates', 'gown', 'legwear', 'tassets']],
     ['Hands', ['gauntlets', 'gloves', 'mitts', 'bracers', 'hook', 'handwraps', 'hands', 'grasps', 'wraps']],
-    ['Feet', ['boots', 'shoes', 'sandals', 'feet']],
+    ['Feet', ['boots', 'shoes', 'sandals', 'feet', 'sabatons']],
     ['Back', ['cape', 'cloak', 'backpack', 'tail', 'shroud']],
     ['Wings', ['wings']],
     ['Neck', ['necklace', 'amulet', 'neck']],
