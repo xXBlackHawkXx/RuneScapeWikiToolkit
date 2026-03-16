@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createMediaWikiClient, type MediaWikiClient } from '@/core/mediawiki/client';
+import type { ModuleDefinition } from '@/core/modules/types';
 import type { AppLogEntry, AppSettings } from '@/core/types/app';
 import { DEFAULT_SETTINGS } from '@/core/types/app';
 import { createPersistentState } from '@/core/utils/storage';
@@ -28,11 +29,12 @@ type AppContextValue = {
   clearLogs: () => void;
   wiki: MediaWikiClient;
   queue: ReturnType<typeof useJobQueueController>;
+  modules: Pick<ModuleDefinition, 'id' | 'name'>[];
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
+export function AppProvider({ children, modules }: { children: React.ReactNode; modules: Pick<ModuleDefinition, 'id' | 'name'>[] }) {
   const [settings, setSettingsState] = useState<AppSettings>(() => sanitizeSettings(settingsStore.get()));
   const [logEntries, setLogEntries] = useState<AppLogEntry[]>(() => logStore.get());
   const [dryRun, setDryRun] = useState(true);
@@ -62,8 +64,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const wiki = useMemo(() => createMediaWikiClient(() => settings), [settings]);
 
   const value = useMemo<AppContextValue>(
-    () => ({ settings, setSettings, dryRun, setDryRun, activeModuleId, setActiveModuleId, logEntries, addLog, clearLogs, wiki, queue }),
-    [settings, setSettings, dryRun, activeModuleId, logEntries, addLog, clearLogs, wiki, queue],
+    () => ({ settings, setSettings, dryRun, setDryRun, activeModuleId, setActiveModuleId, logEntries, addLog, clearLogs, wiki, queue, modules }),
+    [settings, setSettings, dryRun, activeModuleId, logEntries, addLog, clearLogs, wiki, queue, modules],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
@@ -76,4 +78,3 @@ export function useAppContext() {
   }
   return context;
 }
-

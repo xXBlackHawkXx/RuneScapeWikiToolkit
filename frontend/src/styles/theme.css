@@ -238,7 +238,7 @@ button:disabled {
   font-size: 8px;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--parchment-dim);
   padding: 6px 10px 4px;
   display: flex;
   align-items: center;

@@ -31,8 +31,10 @@ function AppShell() {
 }
 
 export function App() {
+  const modules = moduleRegistry.getAll().map((module) => ({ id: module.id, name: module.name }));
+
   return (
-    <AppProvider>
+    <AppProvider modules={modules}>
       <AppShell />
     </AppProvider>
   );

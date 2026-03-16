@@ -9,6 +9,7 @@ import { PageDiffModule } from '@/modules/pageDiff';
 import { ActionLogModule } from '@/modules/actionLog';
 import { SettingsModule } from '@/modules/settings';
 import { DoubleRedirectResolverModule } from '@/modules/doubleRedirectResolver';
+import { PatchNoteParserModule } from '@/modules/patchNoteParser';
 
 class ModuleRegistry {
   constructor(private readonly modules: ModuleDefinition[]) {}
@@ -38,6 +39,7 @@ export const moduleRegistry = new ModuleRegistry([
   DoubleRedirectResolverModule,
   DeadLinkScannerModule,
   PageDiffModule,
+  PatchNoteParserModule,
   ActionLogModule,
   SettingsModule,
 ]);

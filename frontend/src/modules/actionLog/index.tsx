@@ -4,22 +4,23 @@ import { Button } from '@/shared/components/Form';
 import { Panel } from '@/shared/components/Panel';
 import type { ModuleDefinition } from '@/core/modules/types';
 
-const TOOL_NAMES: Record<string, string> = {
-  'find-replace': 'Find & Replace',
-  'mass-edit': 'Mass Edit',
-  'template-inspector': 'Template Inspector',
-  'category-manager': 'Category Manager',
-  'dead-link-scanner': 'Dead Link Scanner',
-  'page-diff': 'Page Diff',
-  'double-redirect-resolver': 'Double Redirect Resolver',
-  'component-generator': 'Component Generator',
-  settings: 'Settings',
-};
+function formatToolId(toolId: string) {
+  return toolId
+    .split(/[-_]/g)
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ');
+}
 
 function ActionLogView() {
-  const { logEntries, clearLogs } = useAppContext();
+  const { logEntries, clearLogs, modules } = useAppContext();
   const [modeFilter, setModeFilter] = useState<'all' | 'dry' | 'live'>('all');
   const [toolFilter, setToolFilter] = useState('all');
+
+  const toolNames = useMemo(
+    () => Object.fromEntries(modules.map((module) => [module.id, module.name])),
+    [modules],
+  );
 
   const tools = useMemo(
     () => [...new Set(logEntries.map((entry) => entry.tool))].sort((a, b) => a.localeCompare(b)),
@@ -61,7 +62,7 @@ function ActionLogView() {
             <span className="field-label">Tool Filter</span>
             <select value={toolFilter} onChange={(event) => setToolFilter(event.target.value)}>
               <option value="all">All Tools</option>
-              {tools.map((tool) => <option key={tool} value={tool}>{TOOL_NAMES[tool] ?? tool}</option>)}
+              {tools.map((tool) => <option key={tool} value={tool}>{toolNames[tool] ?? formatToolId(tool)}</option>)}
             </select>
           </label>
         </div>
@@ -75,7 +76,7 @@ function ActionLogView() {
         {filteredEntries.length === 0 ? <div className="muted">No entries recorded for the selected filters.</div> : null}
         {filteredEntries.map((entry) => (
           <div key={entry.id} className="result-row">
-            <div className="result-top"><strong>{TOOL_NAMES[entry.tool] ?? entry.tool}</strong><span className={`pill pill-${entry.status}`}>{entry.status}</span></div>
+            <div className="result-top"><strong>{toolNames[entry.tool] ?? formatToolId(entry.tool)}</strong><span className={`pill pill-${entry.status}`}>{entry.status}</span></div>
             <div>{entry.action}</div>
             <div className="muted small">{new Date(entry.timestamp).toLocaleString()}</div>
             <div className="muted small">{entry.summary}</div>
